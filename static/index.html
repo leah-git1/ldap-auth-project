@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Front Desk · LDAP Identity Console</title>
+<style>
+:root{--ink:#0c1630;--deck:#142247;--deck2:#1b2d5c;--line:#2a3d72;--tx:#e8eefc;--mut:#8fa0c8;--blue:#5b8cff;--mint:#5eead4;--rose:#ff7a90;--amber:#ffd166;--paper:#f3f6fc;--pt:#12203f;
+--serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;--mono:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;--sans:system-ui,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--ink);color:var(--tx);font:15px/1.55 var(--sans);
+background-image:linear-gradient(rgba(91,140,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(91,140,255,.05) 1px,transparent 1px);background-size:44px 44px}
+.wrap{max-width:1160px;margin:0 auto;padding:36px 22px 70px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+h1{font:600 clamp(30px,5vw,48px)/1.05 var(--serif);margin:0;letter-spacing:-.02em}
+header p{margin:8px 0 0;color:var(--mut);max-width:560px}
+h2{font:600 20px var(--serif);margin:0 0 4px}
+.sub{color:var(--mut);font-size:13px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:20px}
+.card{background:var(--deck);border:1px solid var(--line);border-radius:14px;padding:24px}
+.wide{grid-column:1/-1}
+.tabs{display:flex;gap:4px;background:var(--ink);padding:4px;border-radius:10px;margin-bottom:18px}
+.tabs button{flex:1;padding:9px;border:0;border-radius:7px;background:none;color:var(--mut);font:600 14px var(--sans);cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--deck2);color:var(--tx)}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 5px}
+input{width:100%;padding:11px 13px;background:var(--ink);border:1px solid var(--line);border-radius:8px;color:var(--tx);font:15px var(--sans)}
+input:focus-visible,button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn{width:100%;margin-top:18px;padding:12px;border:0;border-radius:9px;background:var(--blue);color:#06112b;font:700 15px var(--sans);cursor:pointer;transition:transform .12s}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.5;cursor:wait}
+.ghost{background:none;border:1px solid var(--line);color:var(--tx);padding:8px 13px;border-radius:8px;font:600 13px var(--sans);cursor:pointer}
+.ghost:hover{border-color:var(--blue)}
+.meter{height:5px;border-radius:3px;background:var(--ink);margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--rose);transition:width .25s,background .25s}
+.hint{font-size:12px;color:var(--mut);margin-top:5px;min-height:18px}
+.err{color:var(--rose);font-size:13px;margin-top:12px;min-height:18px}
+.demo{margin-top:14px;font-size:12px;color:var(--mut);border-top:1px dashed var(--line);padding-top:12px}
+.demo code{color:var(--amber);font-family:var(--mono)}
+/* terminal */
+.term{background:#070d1f;border:1px solid var(--line);border-radius:10px;padding:16px;font:13px/1.9 var(--mono);min-height:300px;overflow:auto}
+.term .idle{color:var(--mut)}
+.ln{display:flex;gap:12px;opacity:0;transform:translateX(-6px);animation:in .28s forwards}
+@keyframes in{to{opacity:1;transform:none}}
+.op{flex:0 0 68px;font-weight:700}
+.ln.info .op{color:var(--blue)}.ln.ok .op{color:var(--mint)}.ln.fail .op{color:var(--rose)}
+.ln span:last-child{word-break:break-all;color:#c8d4f2}
+.mark{flex:0 0 14px}.ok .mark{color:var(--mint)}.fail .mark{color:var(--rose)}.info .mark{color:var(--mut)}
+/* badge */
+.badge-row{display:grid;grid-template-columns:340px minmax(0,1fr);gap:28px;align-items:start}
+.lanyard{display:flex;flex-direction:column;align-items:center}
+.strap{width:26px;height:46px;background:repeating-linear-gradient(135deg,var(--blue) 0 8px,#3f6be0 8px 16px);border-radius:0 0 4px 4px}
+.badge{width:100%;background:var(--paper);color:var(--pt);border-radius:16px;padding:22px;transform-origin:top center;animation:swing 1.5s ease-out;box-shadow:0 24px 50px rgba(0,0,0,.45)}
+@keyframes swing{0%{transform:rotate(-9deg)}25%{transform:rotate(6deg)}50%{transform:rotate(-3deg)}75%{transform:rotate(1.5deg)}100%{transform:rotate(0)}}
+.slot{width:54px;height:8px;border-radius:4px;background:#c4cde0;margin:0 auto 16px}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--pt);color:var(--paper);display:grid;place-items:center;font:600 26px var(--serif)}
+.badge h3{font:600 24px var(--serif);margin:12px 0 0}
+.badge .uid{font:13px var(--mono);color:#52638f}
+.clear{margin:16px 0 4px;font-size:12px;color:#52638f}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:3px 10px;border-radius:99px;font:700 12px var(--mono);background:#dbe4fb;color:#1c3a8c}
+.chip.adm{background:var(--pt);color:var(--amber)}
+.bars{display:flex;align-items:flex-end;height:46px;gap:2px;margin-top:18px}
+.bars i{display:block;background:var(--pt)}
+.exp{margin-top:10px;font:12px var(--mono);color:#52638f;display:flex;justify-content:space-between}
+.tok{font:12px/1.6 var(--mono);word-break:break-all;background:#070d1f;border:1px solid var(--line);border-radius:10px;padding:14px}
+.tok .h{color:var(--blue)}.tok .p{color:var(--mint)}.tok .s{color:var(--amber)}
+pre{margin:10px 0 0;font:12.5px/1.6 var(--mono);background:#070d1f;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;color:#c8d4f2}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
+.resp .st{display:inline-block;padding:1px 9px;border-radius:5px;font:700 12px var(--mono);margin-right:8px}
+.s2{background:rgba(94,234,212,.15);color:var(--mint)}.s4{background:rgba(255,122,144,.15);color:var(--rose)}
+/* directory */
+.tree{font:13.5px/1 var(--mono)}
+.tree ul{list-style:none;margin:0;padding-left:22px;border-left:1px dashed var(--line)}
+.tree>ul{border:0;padding:0}
+.nd{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:3px 0;border-radius:7px;cursor:pointer;animation:in .3s both}
+.nd:hover{background:var(--deck2)}
+.gl{width:18px;text-align:center;font-weight:700}
+.gl.org{color:var(--amber)}.gl.ou{color:var(--blue)}.gl.person{color:var(--mint)}.gl.grp{color:var(--rose)}
+.det{margin:2px 0 8px 38px;font-size:12px;color:var(--mut);display:none}
+.det.open{display:block}
+.lock{display:flex;gap:16px;align-items:center;padding:20px;border:1px dashed var(--rose);border-radius:10px;color:#ffc2cc}
+[hidden]{display:none!important}
+.chipu{display:flex;align-items:center;gap:10px}
+@media(max-width:860px){.grid,.badge-row{grid-template-columns:1fr}.lanyard{max-width:340px;margin:auto}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>The Front Desk</h1>
+    <p>A live LDAP directory checks who you are. Then your JWT badge decides where you can go. Everything the server does is shown on the right.</p>
+  </div>
+  <div class="chipu" id="who" hidden><span id="whoName"></span><button class="ghost" id="logout">Sign out</button></div>
+</header>
+
+<div class="grid">
+  <section class="card" aria-label="Sign in or register">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tLogin" aria-selected="true">Sign in</button>
+      <button role="tab" id="tReg" aria-selected="false">Create account</button>
+    </div>
+    <form id="fLogin" autocomplete="off">
+      <h2>Welcome back</h2><p class="sub">Your password is checked by the directory itself (an LDAP bind).</p>
+      <label for="lu">Username</label><input id="lu" required>
+      <label for="lp">Password</label><input id="lp" type="password" required>
+      <button class="btn" id="bLogin">Sign in</button>
+      <div class="err" id="eLogin"></div>
+      <div class="demo">Seeded accounts: <code>dcohen</code> / <code>pass1234</code> (admin) and <code>ylevi</code> / <code>pass5678</code></div>
+    </form>
+    <form id="fReg" hidden autocomplete="off">
+      <h2>Get a badge</h2><p class="sub">This adds a real entry to the directory tree.</p>
+      <label for="rn">Full name</label><input id="rn" required>
+      <label for="re">Email</label><input id="re" type="email" required>
+      <label for="ru">Username</label><input id="ru" required>
+      <div class="hint" id="uh">3-20 characters: lowercase letters, digits, underscore.</div>
+      <label for="rp">Password</label><input id="rp" type="password" required>
+      <div class="meter"><i id="mt"></i></div><div class="hint" id="ph">At least 8 characters.</div>
+      <button class="btn" id="bReg">Create account</button>
+      <div class="err" id="eReg"></div>
+    </form>
+  </section>
+
+  <section class="card" aria-label="Protocol trace">
+    <h2>What the server just did</h2><p class="sub">Every step between your click and the directory.</p>
+    <div class="term" id="term" aria-live="polite"><div class="idle">Waiting for a request. Sign in or create an account to watch it happen.</div></div>
+  </section>
+
+  <section class="card wide" id="session" hidden>
+    <div class="badge-row">
+      <div class="lanyard"><div class="strap"></div>
+        <div class="badge"><div class="slot"></div>
+          <div class="avatar" id="av"></div><h3 id="bn"></h3><div class="uid" id="bu"></div>
+          <div class="clear">Clearance</div><div class="chips" id="bc"></div>
+          <div class="bars" id="bars" aria-hidden="true"></div>
+          <div class="exp"><span>valid for</span><span id="cd"></span></div>
+        </div>
+      </div>
+      <div>
+        <h2>Your badge is a JWT</h2><p class="sub">Three signed parts. The directory is not asked again; the signature proves the badge is genuine.</p>
+        <div class="tok" id="tok"></div>
+        <pre id="dec"></pre>
+        <div class="acts">
+          <button class="ghost" data-call="/profile">GET /profile</button>
+          <button class="ghost" data-call="/admin">GET /admin</button>
+          <button class="ghost" id="forge">Forge an admin badge</button>
+        </div>
+        <pre class="resp" id="resp">Try a door. Admin-only doors turn away members of other groups.</pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="card wide" id="dir" hidden>
+    <h2>The registry</h2><p class="sub">The directory tree, read live from OpenLDAP. Click an entry for its object classes.</p>
+    <div class="tree" id="tree"></div>
+  </section>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let token=null,expAt=0,timer=null;
+const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function call(path,opts={},tk=token){
+  const h={'Content-Type':'application/json'};if(tk)h.Authorization='Bearer '+tk;
+  const r=await fetch(path,{...opts,headers:h});let j={};try{j=await r.json()}catch(e){}
+  return {status:r.status,data:j};
+}
+/* tabs */
+function tab(reg){$('tLogin').setAttribute('aria-selected',!reg);$('tReg').setAttribute('aria-selected',reg);$('fLogin').hidden=reg;$('fReg').hidden=!reg}
+$('tLogin').onclick=()=>tab(false);$('tReg').onclick=()=>tab(true);
+/* register helpers */
+$('ru').oninput=e=>{const v=e.target.value,ok=/^[a-z][a-z0-9_]{2,19}$/.test(v);$('uh').textContent=v?(ok?'Looks good.':'Start with a letter; 3-20 lowercase letters, digits or _.'):'3-20 characters: lowercase letters, digits, underscore.'}
+$('rp').oninput=e=>{const v=e.target.value;let s=0;if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++;if(/\d/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  $('mt').style.width=(s*20)+'%';$('mt').style.background=s<3?'var(--rose)':s<4?'var(--amber)':'var(--mint)';
+  $('ph').textContent=v.length<8?'At least 8 characters.':['','Weak','Fair','Good','Strong','Excellent'][s]}
+/* trace */
+async function trace(steps){
+  const t=$('term');t.innerHTML='';
+  for(const s of steps){
+    const d=document.createElement('div');d.className='ln '+s.status;
+    const m=document.createElement('span');m.className='mark';m.textContent=s.status==='ok'?'✓':s.status==='fail'?'✗':'·';
+    const o=document.createElement('span');o.className='op';o.textContent=s.op;
+    const x=document.createElement('span');x.textContent=s.msg;
+    d.append(m,o,x);t.append(d);await sleep(320);
+  }
+}
+/* register */
+$('fReg').onsubmit=async e=>{e.preventDefault();$('eReg').textContent='';$('bReg').disabled=true;
+  const body=JSON.stringify({fullName:$('rn').value,email:$('re').value,username:$('ru').value,password:$('rp').value});
+  const {status,data}=await call('/register',{method:'POST',body},null);
+  if(data.trace)await trace(data.trace);
+  $('bReg').disabled=false;
+  if(status===201){$('lu').value=$('ru').value.toLowerCase();$('lp').value='';$('fReg').reset();tab(false);$('eLogin').style.color='var(--mint)';$('eLogin').textContent='Account created. Sign in to collect your badge.';$('lp').focus()}
+  else{$('eReg').textContent=data.error||'Something went wrong.'}
+};
+/* login */
+$('fLogin').onsubmit=async e=>{e.preventDefault();$('eLogin').style.color='';$('eLogin').textContent='';$('bLogin').disabled=true;
+  const {status,data}=await call('/login',{method:'POST',body:JSON.stringify({username:$('lu').value,password:$('lp').value})},null);
+  if(data.trace)await trace(data.trace);
+  $('bLogin').disabled=false;
+  if(status===200){token=data.token;showBadge();$('session').scrollIntoView({behavior:'smooth',block:'start'})}
+  else{$('eLogin').textContent=data.error||'Something went wrong.'}
+};
+function showBadge(){
+  const [h,p,s]=token.split('.'),pl=JSON.parse(b64d(p));expAt=pl.exp*1000;
+  $('session').hidden=false;$('who').hidden=false;$('whoName').textContent='Signed in as '+pl.sub;
+  $('av').textContent=pl.sub[0].toUpperCase();$('bn').textContent=pl.sub;$('bu').textContent='uid='+pl.sub;
+  $('bc').innerHTML='';(pl.groups.length?pl.groups:['no groups']).forEach(g=>{const c=document.createElement('span');c.className='chip'+(g==='admins'?' adm':'');c.textContent=g;$('bc').append(c)});
+  const bars=$('bars');bars.innerHTML='';for(const ch of s.slice(0,40)){const c=ch.charCodeAt(0),i=document.createElement('i');i.style.width=(1+c%3)+'px';i.style.height=(55+c%45)+'%';bars.append(i)}
+  $('tok').innerHTML='';[['h',h],['p',p],['s',s]].forEach(([k,v],i)=>{const sp=document.createElement('span');sp.className=k;sp.textContent=v;$('tok').append(sp);if(i<2)$('tok').append('.')});
+  $('dec').textContent=JSON.stringify(JSON.parse(b64d(h)),null,2)+'\n'+JSON.stringify({...pl,exp:pl.exp+' ('+new Date(expAt).toLocaleTimeString()+')'},null,2)+'\nsignature: HMAC-SHA256(header.payload, server secret)';
+  $('resp').textContent='Try a door. Admin-only doors turn away members of other groups.';
+  clearInterval(timer);timer=setInterval(tick,1000);tick();loadDir();
+}
+function tick(){const l=Math.max(0,Math.floor((expAt-Date.now())/1000));$('cd').textContent=String(Math.floor(l/60)).padStart(2,'0')+':'+String(l%60).padStart(2,'0');if(!l)clearInterval(timer)}
+/* api tester */
+function show(r,label){$('resp').innerHTML='';const s=document.createElement('span');s.className='st '+(r.status<300?'s2':'s4');s.textContent=r.status;$('resp').append(label+'  ',s,'\n'+JSON.stringify(r.data,null,2))}
+document.querySelectorAll('[data-call]').forEach(b=>b.onclick=async()=>show(await call(b.dataset.call),'GET '+b.dataset.call));
+$('forge').onclick=async()=>{const [h,p,s]=token.split('.'),pl=JSON.parse(b64d(p));pl.groups=['admins'];
+  const fake=h+'.'+b64e(JSON.stringify(pl))+'.'+s;show(await call('/admin',{},fake),'GET /admin with edited payload (groups: admins)')};
+$('logout').onclick=()=>{token=null;clearInterval(timer);$('session').hidden=true;$('dir').hidden=true;$('who').hidden=true;$('term').innerHTML='<div class="idle">Signed out. The badge is gone; the directory still knows you.</div>';window.scrollTo({top:0,behavior:'smooth'})};
+/* directory */
+const gl=c=>c.includes('organization')?['◆','org']:c.includes('organizationalUnit')?['▸','ou']:c.includes('inetOrgPerson')?['●','person']:c.includes('groupOfNames')?['◼','grp']:['◇','ou'];
+async function loadDir(){
+  const r=await call('/api/directory'),box=$('tree');$('dir').hidden=false;box.innerHTML='';
+  if(r.status!==200){box.innerHTML='<div class="lock"><span style="font-size:28px">&#128274;</span><div><b>The registry is for admins.</b><br>Your badge says you are not in the admins group, so the server answered '+r.status+'. Sign in as dcohen to see the tree.</div></div>';return}
+  const base=r.data.base,root={k:base,e:null,c:{}};
+  r.data.entries.forEach(e=>{if(e.dn===base){root.e=e;return}
+    const rel=e.dn.slice(0,-(base.length+1)).split(',').reverse();let n=root;
+    rel.forEach((p,i)=>{n=n.c[p]=n.c[p]||{k:p,e:null,c:{}};if(i===rel.length-1)n.e=e})});
+  let idx=0;
+  const draw=n=>{const li=document.createElement('li'),[g,cl]=gl(n.e?n.e.classes:['organizationalUnit']),row=document.createElement('div');
+    row.className='nd';row.style.animationDelay=(idx++*55)+'ms';
+    const gs=document.createElement('span');gs.className='gl '+cl;gs.textContent=g;const t=document.createElement('span');t.textContent=n.k;row.append(gs,t);li.append(row);
+    if(n.e){const d=document.createElement('div');d.className='det';d.textContent='objectClass: '+n.e.classes.join(', ')+(n.e.mail?'  ·  mail: '+n.e.mail:'');li.append(d);row.onclick=()=>d.classList.toggle('open')}
+    const ks=Object.values(n.c);if(ks.length){const ul=document.createElement('ul');ks.forEach(k=>ul.append(draw(k)));li.append(ul)}return li};
+  const ul=document.createElement('ul');ul.append(draw(root));box.append(ul);
+}
+</script>
+</body>
+</html>
