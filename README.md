@@ -1,114 +1,99 @@
+<h1 align="center">The Front Desk</h1>
 
+<p align="center">
+  <b>LDAP authentication and JWT authorization, made visible.</b><br>
+  A real OpenLDAP directory verifies users. A signed JWT decides what they can access.
+</p>
 
-# The Front Desk
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white" alt="Flask">
+  <img src="https://img.shields.io/badge/OpenLDAP-Docker-2496ED?logo=docker&logoColor=white" alt="OpenLDAP">
+  <img src="https://img.shields.io/badge/Auth-JWT-F7B500?logo=jsonwebtokens&logoColor=white" alt="JWT">
+</p>
 
-A Flask + OpenLDAP demo that shows how LDAP authentication works in practice and how a JWT is used to authorize access to protected routes.
+<img width="1427" height="983" alt="צילום מסך 2026-11-15 152939" src="https://github.com/user-attachments/assets/3bd07e83-cc99-4e86-818e-c5decf869ac3" />
 
-This project presents a small identity flow:
-- create an LDAP account
-- sign in with a real LDAP bind
-- receive a JWT with group membership claims
-- call protected endpoints for profile/admin checks
-- inspect the live directory tree
+---
 
-## Demo video
-
-Watch the project walkthrough:
-
-
+## Demo
 
 https://github.com/user-attachments/assets/9dd22995-2d1b-4470-adce-070d1651f5fd
 
+## What it does
 
+- **Register:** creates a real `inetOrgPerson` entry in the directory, with a salted-SHA password hash
+- **Sign in:** validates credentials with an LDAP bind, not a database lookup
+- **Get a badge:** receives a JWT carrying the user's LDAP group memberships
+- **Open doors:** `/profile` needs a valid token, `/admin` needs the `admins` group
+- **See everything:** a live trace panel shows each LDAP step, and an admin-only tree shows the directory
 
-If the video player is not supported by your README viewer, [open the demo video](./media/demo/LDAP_demo.mp4).
+## How it works
 
-## Features
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant F as Flask API
+    participant L as OpenLDAP
+    B->>F: POST /login (username, password)
+    F->>L: BIND as uid=user,ou=Developers
+    L-->>F: success
+    F->>L: SEARCH groups where member = user DN
+    L-->>F: group list
+    F-->>B: signed JWT (sub, groups, exp)
+    B->>F: GET /admin with Bearer token
+    F-->>B: 200 if in admins, otherwise 403
+```
 
-- OpenLDAP directory with organizational units and groups
-- User registration that writes an `inetOrgPerson` entry
-- Login by validating credentials with an LDAP bind
-- JWT generation for a signed user session
-- Admin-only access checks based on LDAP group membership
-- Live directory browsing from the browser
-- Interactive trace panel showing the auth flow step by step
+## Quick start
 
-## Tech stack
+```bash
+docker compose up -d
+docker cp ldif/users.ldif my-ldap:/tmp/users.ldif
+docker exec my-ldap ldapadd -x -D "cn=admin,dc=example,dc=com" -w admin123 -f /tmp/users.ldif
 
-- Python 3
-- Flask
-- ldap3
-- OpenLDAP via Docker
-- PyJWT
+python -m venv venv
+venv\Scripts\activate        # Mac/Linux: source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
 
-## Project structure
+Open **http://localhost:5000**
 
-- `app.py` — Flask API and JWT logic
-- `static/index.html` — browser-based demo UI
-- `ldif/users.ldif` — seed LDAP directory data
-- `docker-compose.yml` — OpenLDAP container setup
-- `requirements.txt` — Python dependencies
-- `media/demo/` — place your recorded demo video here
+| User | Password | Role |
+|---|---|---|
+| `dcohen` | `pass1234` | admin |
+| `ylevi` | `pass5678` | regular user |
 
-## Local setup
+## Endpoints
 
-1. Start the LDAP container:
+| Route | Access |
+|---|---|
+| `POST /register` | public, creates an LDAP user |
+| `POST /login` | public, returns a JWT |
+| `GET /profile` | any valid token |
+| `GET /admin` | token with `admins` group |
+| `GET /api/directory` | token with `admins` group |
 
-   ```bash
-   docker compose up -d
-   ```
+<details>
+<summary><b>Project structure</b></summary>
 
-2. Install Python dependencies:
+```
+app.py               Flask API and JWT logic
+static/index.html    browser UI
+ldif/users.ldif      seed directory data
+docker-compose.yml   OpenLDAP container
+requirements.txt     Python dependencies
+```
+</details>
 
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+<details>
+<summary><b>What I learned building this</b></summary>
 
-3. Start the app:
+- How an LDAP bind authenticates a user against a directory tree
+- How group membership in the directory can drive authorization
+- How JWT signatures prevent tampering with claims
+- How to turn a protocol flow into something a person can see
+</details>
 
-   ```bash
-   python app.py
-   ```
-
-4. Open the app in a browser:
-
-   ```text
-   http://localhost:5000
-   ```
-
-## Demo credentials
-
-The seeded directory includes:
-
-- `dcohen` / `pass1234` — admin user
-- `ylevi` / `pass5678` — regular user
-
-## Authentication flow
-
-1. The user signs in with a username and password.
-2. The server attempts an LDAP bind against the user DN.
-3. If valid, the server searches the group membership for that user.
-4. A JWT is issued with the username and group list.
-5. Protected routes check the JWT and require the `admins` group for admin access.
-
-## Admin endpoints
-
-The app exposes a few protected routes:
-
-- `/profile` — requires a valid JWT
-- `/admin` — requires a valid JWT and `admins` in the group list
-- `/api/directory` — admin-only directory listing
-
-## Notes
-
-This project is intended as a learning/demo application for understanding:
-- how LDAP binds authenticate users
-- how directory metadata can drive authorization
-- how JWT claims carry trusted identity context
-- how a simple frontend can visualize an auth flow
-
-## License
-
-This project is intended for educational/demo use.
+> Built for learning and demonstration. Credentials and secrets here are for local use only.
