@@ -15,9 +15,11 @@ This project presents a small identity flow:
 
 Watch the project walkthrough:
 
-<video controls width="100%" src="./media/demo/LDAP_demo.mp4">
-  Your browser cannot play this video. <a href="./media/demo/LDAP_demo.mp4">Open the demo video</a>.
-</video>
+
+
+https://github.com/user-attachments/assets/9dd22995-2d1b-4470-adce-070d1651f5fd
+
+
 
 If the video player is not supported by your README viewer, [open the demo video](./media/demo/LDAP_demo.mp4).
 
