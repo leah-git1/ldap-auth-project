@@ -1,0 +1,30 @@
+dn: ou=Developers,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Developers
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Groups
+
+dn: uid=dcohen,ou=Developers,dc=example,dc=com
+objectClass: inetOrgPerson
+uid: dcohen
+cn: Dana Cohen
+sn: Cohen
+givenName: Dana
+mail: dana.cohen@example.com
+userPassword: pass1234
+
+dn: uid=ylevi,ou=Developers,dc=example,dc=com
+objectClass: inetOrgPerson
+uid: ylevi
+cn: Yael Levi
+sn: Levi
+givenName: Yael
+mail: yael.levi@example.com
+userPassword: pass5678
+
+dn: cn=admins,ou=Groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: admins
+member: uid=dcohen,ou=Developers,dc=example,dc=com
