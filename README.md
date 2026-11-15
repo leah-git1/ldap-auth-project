@@ -1,3 +1,5 @@
+
+
 # The Front Desk
 
 A Flask + OpenLDAP demo that shows how LDAP authentication works in practice and how a JWT is used to authorize access to protected routes.
